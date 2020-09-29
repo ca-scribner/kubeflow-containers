@@ -75,7 +75,7 @@ jobs:
     # Scan image for vulnerabilities (new image)
     - uses: Azure/container-scan@v0
       env:
-        TRIVY_TIMEOUT: 0m5s
+        TRIVY_TIMEOUT: 20m0s
       with:
         image-name: ${{ steps.base-notebook-cpu.outputs.tag_pinned }}
         # image-name: k8scc01covidacr.azurecr.io/base-notebook-cpu:379b54eaae9bf55e83c4da0855060ae170ef7c0f
