@@ -45,24 +45,25 @@ jobs:
     #     docker rmi $(docker image ls -aq)
     #     df -h
 
-    # # DEBUG: FAKE BUILD
-    # # Container build and push to a Azure Container registry (ACR)
-    # - name: Base Notebook CPU (fake)
-    #   id: base-notebook-cpu
-    #   working-directory: ./base-notebook/
-    #   env:
-    #     IMAGE_NAME: base-notebook-cpu-fake
-    #   run: |
-    #     # Get upstream image from build_settings.env
+    # DEBUG: FAKE BUILD
+    # Container build and push to a Azure Container registry (ACR)
+    # DEBUG: NOTE THIS DOES NOT PUSH - MUST SCAN LOCALLY!
+    - name: Base Notebook CPU (fake)
+      id: base-notebook-cpu
+      working-directory: ./base-notebook/
+      env:
+        IMAGE_NAME: base-notebook-cpu-fake
+      run: |
+        # Get upstream image from build_settings.env
 
-    #     (source ../build_settings.env && \
-    #      ../scripts/build_push.sh --registry ${{ env.REGISTRY }} \
-    #                                         --image_name ${{ env.IMAGE_NAME }} \
-    #                                         --tag_pinned ${{ github.sha }} \
-    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
-    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-    #                                         --base_container $UPSTREAM_CONTAINER_CPU \
-    #     )
+        (source ../build_settings.env && \
+         ../scripts/build_push.sh --registry ${{ env.REGISTRY }} \
+                                            --image_name ${{ env.IMAGE_NAME }} \
+                                            --tag_pinned ${{ github.sha }} \
+                                            --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+                                            --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+                                            --base_container $UPSTREAM_CONTAINER_CPU \
+        )
 
     # # Scan image for vulnerabilities (image that should work)
     # - uses: Azure/container-scan@v0
@@ -76,7 +77,7 @@ jobs:
       env:
         TRIVY_TIMEOUT: 0m5s
       with:
-        # image-name: ${{ steps.base-notebook-cpu.outputs.tag_pinned }}
-        image-name: k8scc01covidacr.azurecr.io/base-notebook-cpu:379b54eaae9bf55e83c4da0855060ae170ef7c0f
+        image-name: ${{ steps.base-notebook-cpu.outputs.tag_pinned }}
+        # image-name: k8scc01covidacr.azurecr.io/base-notebook-cpu:379b54eaae9bf55e83c4da0855060ae170ef7c0f
         severity-threshold: CRITICAL
         run-quality-checks: false
