@@ -39,10 +39,10 @@ jobs:
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
 # DEBUG: KALE NOTEBOOK BASES OFF BASE NOTEBOOK LATEST
-    # - name: Free disk space (cache + all docker images)
-    #   run: |
-    #     scripts/free_space.sh
-    #     docker rmi $(docker image ls -aq)
+    - name: Free disk space (cache + all docker images)
+      run: |
+        scripts/free_space.sh
+        docker rmi $(docker image ls -aq)
 
     # # Container build and push to a Azure Container registry (ACR)
     # - name: Base Notebook CPU
