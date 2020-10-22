@@ -90,9 +90,9 @@ jobs:
                                             --base_container ${{ env.REGISTRY }}/base-notebook-cpu:5ef877ea13789f64594c219ef0a302dc97c21bb4 \
                                             --push
 
-    # - name: Free disk space (cache)
-    #   run: |
-    #     scripts/free_space.sh
+    - name: Free disk space (cache)
+      run: |
+        scripts/free_space.sh
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
