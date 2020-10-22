@@ -14,10 +14,7 @@ name: build cpu
 on:
   push:
     branches:
-      - master
-  pull_request:
-    branches: 
-      - master  # DEBUG
+      - test-kale
 
 # Environment variables available to all jobs and steps in this workflow
 env:
@@ -77,11 +74,11 @@ jobs:
         run-quality-checks: false
 
     # Container build and push to a Azure Container registry (ACR)
-    - name: Minimal Notebook CPU
-      id: minimal-notebook-cpu
-      working-directory: ./minimal-notebook/
+    - name: Kale Notebook CPU
+      id: kale-notebook-cpu
+      working-directory: ./kale-notebook/
       env:
-        IMAGE_NAME: minimal-notebook-cpu
+        IMAGE_NAME: kale-notebook-cpu
       run: |
         ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
                                             --image_name ${{ env.IMAGE_NAME }} \
@@ -98,90 +95,116 @@ jobs:
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       with:
-        image-name: ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }}
+        image-name: ${{ steps.kale-notebook-cpu.outputs.tag_pinned }}
         severity-threshold: CRITICAL
         run-quality-checks: false
 
-    # Container build and push to a Azure Container registry (ACR)
-    - name: Geomatics Notebook CPU
-      id: geomatics-notebook-cpu
-      working-directory: ./geomatics-notebook/
-      env:
-        IMAGE_NAME: geomatics-notebook-cpu
-      # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
-      run: |
-        ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
-                                            --image_name ${{ env.IMAGE_NAME }} \
-                                            --tag_pinned ${{ github.sha }} \
-                                            --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
-                                            --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-                                            --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
-                                            --push \
-                                            --prune_this
+    # # Container build and push to a Azure Container registry (ACR)
+    # - name: Minimal Notebook CPU
+    #   id: minimal-notebook-cpu
+    #   working-directory: ./minimal-notebook/
+    #   env:
+    #     IMAGE_NAME: minimal-notebook-cpu
+    #   run: |
+    #     ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
+    #                                         --image_name ${{ env.IMAGE_NAME }} \
+    #                                         --tag_pinned ${{ github.sha }} \
+    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --base_container ${{ steps.base-notebook-cpu.outputs.tag_pinned }} \
+    #                                         --push
 
-    - name: Free disk space (cache)
-      run: |
-        scripts/free_space.sh
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
 
-    # Scan image for vulnerabilities
-    - uses: Azure/container-scan@v0
-      with:
-        image-name: ${{ steps.geomatics-notebook-cpu.outputs.tag_pinned }}
-        severity-threshold: CRITICAL
-        run-quality-checks: false
+    # # Scan image for vulnerabilities
+    # - uses: Azure/container-scan@v0
+    #   with:
+    #     image-name: ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }}
+    #     severity-threshold: CRITICAL
+    #     run-quality-checks: false
 
-    # Container build and push to a Azure Container registry (ACR)
-    - name: Machine Learning Notebook CPU
-      id: machine-learning-notebook-cpu
-      working-directory: ./machine-learning-notebook/
-      env:
-        IMAGE_NAME: machine-learning-notebook-cpu
-      # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
-      run: |
-        ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
-                                            --image_name ${{ env.IMAGE_NAME }} \
-                                            --tag_pinned ${{ github.sha }} \
-                                            --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
-                                            --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-                                            --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
-                                            --push \
-                                            --prune_this
+    # # Container build and push to a Azure Container registry (ACR)
+    # - name: Geomatics Notebook CPU
+    #   id: geomatics-notebook-cpu
+    #   working-directory: ./geomatics-notebook/
+    #   env:
+    #     IMAGE_NAME: geomatics-notebook-cpu
+    #   # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
+    #   run: |
+    #     ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
+    #                                         --image_name ${{ env.IMAGE_NAME }} \
+    #                                         --tag_pinned ${{ github.sha }} \
+    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
+    #                                         --push \
+    #                                         --prune_this
 
-    - name: Free disk space (cache)
-      run: |
-        scripts/free_space.sh
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
 
-    # Scan image for vulnerabilities
-    - uses: Azure/container-scan@v0
-      with:
-        image-name: ${{ steps.machine-learning-notebook-cpu.outputs.tag_pinned }}
-        severity-threshold: CRITICAL
-        run-quality-checks: false
+    # # Scan image for vulnerabilities
+    # - uses: Azure/container-scan@v0
+    #   with:
+    #     image-name: ${{ steps.geomatics-notebook-cpu.outputs.tag_pinned }}
+    #     severity-threshold: CRITICAL
+    #     run-quality-checks: false
 
-    # Container build and push to a Azure Container registry (ACR)
-    - name: R-Studio CPU
-      id: r-studio-cpu
-      working-directory: ./r-studio/
-      env:
-        IMAGE_NAME: r-studio-cpu
-      # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
-      run: |
-        ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
-                                            --image_name ${{ env.IMAGE_NAME }} \
-                                            --tag_pinned ${{ github.sha }} \
-                                            --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
-                                            --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-                                            --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
-                                            --push \
-                                            --prune_this
+    # # Container build and push to a Azure Container registry (ACR)
+    # - name: Machine Learning Notebook CPU
+    #   id: machine-learning-notebook-cpu
+    #   working-directory: ./machine-learning-notebook/
+    #   env:
+    #     IMAGE_NAME: machine-learning-notebook-cpu
+    #   # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
+    #   run: |
+    #     ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
+    #                                         --image_name ${{ env.IMAGE_NAME }} \
+    #                                         --tag_pinned ${{ github.sha }} \
+    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
+    #                                         --push \
+    #                                         --prune_this
 
-    - name: Free disk space (cache)
-      run: |
-        scripts/free_space.sh
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
 
-    # Scan image for vulnerabilities
-    - uses: Azure/container-scan@v0
-      with:
-        image-name: ${{ steps.r-studio-cpu.outputs.tag_pinned }}
-        severity-threshold: CRITICAL
-        run-quality-checks: false
+    # # Scan image for vulnerabilities
+    # - uses: Azure/container-scan@v0
+    #   with:
+    #     image-name: ${{ steps.machine-learning-notebook-cpu.outputs.tag_pinned }}
+    #     severity-threshold: CRITICAL
+    #     run-quality-checks: false
+
+    # # Container build and push to a Azure Container registry (ACR)
+    # - name: R-Studio CPU
+    #   id: r-studio-cpu
+    #   working-directory: ./r-studio/
+    #   env:
+    #     IMAGE_NAME: r-studio-cpu
+    #   # Invoke --prune-this to remove this image after built/pushed (it is not used again downstream)
+    #   run: |
+    #     ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
+    #                                         --image_name ${{ env.IMAGE_NAME }} \
+    #                                         --tag_pinned ${{ github.sha }} \
+    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --base_container ${{ steps.minimal-notebook-cpu.outputs.tag_pinned }} \
+    #                                         --push \
+    #                                         --prune_this
+
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
+
+    # # Scan image for vulnerabilities
+    # - uses: Azure/container-scan@v0
+    #   with:
+    #     image-name: ${{ steps.r-studio-cpu.outputs.tag_pinned }}
+    #     severity-threshold: CRITICAL
+    #     run-quality-checks: false
