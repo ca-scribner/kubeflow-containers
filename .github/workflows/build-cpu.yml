@@ -38,40 +38,41 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
-    - name: Free disk space (cache + all docker images)
-      run: |
-        scripts/free_space.sh
-        docker rmi $(docker image ls -aq)
+# DEBUG: KALE NOTEBOOK BASES OFF BASE NOTEBOOK LATEST
+    # - name: Free disk space (cache + all docker images)
+    #   run: |
+    #     scripts/free_space.sh
+    #     docker rmi $(docker image ls -aq)
 
-    # Container build and push to a Azure Container registry (ACR)
-    - name: Base Notebook CPU
-      id: base-notebook-cpu
-      working-directory: ./base-notebook/
-      env:
-        IMAGE_NAME: base-notebook-cpu
-      run: |
-        # Get upstream image from build_settings.env
+    # # Container build and push to a Azure Container registry (ACR)
+    # - name: Base Notebook CPU
+    #   id: base-notebook-cpu
+    #   working-directory: ./base-notebook/
+    #   env:
+    #     IMAGE_NAME: base-notebook-cpu
+    #   run: |
+    #     # Get upstream image from build_settings.env
 
-        (source ../build_settings.env && \
-         ../scripts/build_push.sh --registry ${{ env.REGISTRY }} \
-                                            --image_name ${{ env.IMAGE_NAME }} \
-                                            --tag_pinned ${{ github.sha }} \
-                                            --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
-                                            --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-                                            --base_container $UPSTREAM_CONTAINER_CPU \
-                                            --push
-        )
+    #     (source ../build_settings.env && \
+    #      ../scripts/build_push.sh --registry ${{ env.REGISTRY }} \
+    #                                         --image_name ${{ env.IMAGE_NAME }} \
+    #                                         --tag_pinned ${{ github.sha }} \
+    #                                         --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
+    #                                         --base_container $UPSTREAM_CONTAINER_CPU \
+    #                                         --push
+    #     )
 
-    - name: Free disk space (cache)
-      run: |
-        scripts/free_space.sh
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
 
-    # Scan image for vulnerabilities
-    - uses: Azure/container-scan@v0
-      with:
-        image-name: ${{ steps.base-notebook-cpu.outputs.tag_pinned }}
-        severity-threshold: CRITICAL
-        run-quality-checks: false
+    # # Scan image for vulnerabilities
+    # - uses: Azure/container-scan@v0
+    #   with:
+    #     image-name: ${{ steps.base-notebook-cpu.outputs.tag_pinned }}
+    #     severity-threshold: CRITICAL
+    #     run-quality-checks: false
 
     # Container build and push to a Azure Container registry (ACR)
     - name: Kale Notebook CPU
@@ -80,17 +81,18 @@ jobs:
       env:
         IMAGE_NAME: kale-notebook-cpu
       run: |
+        # --base_container ${{ steps.base-notebook-cpu.outputs.tag_pinned }} \
         ../scripts/build_push.sh  --registry ${{ env.REGISTRY }} \
                                             --image_name ${{ env.IMAGE_NAME }} \
                                             --tag_pinned ${{ github.sha }} \
                                             --tag_latest ${{ env.LATEST_IMAGE_TAG }} \
                                             --cache_from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_IMAGE_TAG }} \
-                                            --base_container ${{ steps.base-notebook-cpu.outputs.tag_pinned }} \
+                                            --base_container ${{ env.REGISTRY }}/base-notebook-cpu:${{ env.LATEST_IMAGE_TAG }} \
                                             --push
 
-    - name: Free disk space (cache)
-      run: |
-        scripts/free_space.sh
+    # - name: Free disk space (cache)
+    #   run: |
+    #     scripts/free_space.sh
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
