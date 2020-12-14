@@ -118,7 +118,7 @@ RUN apt-get update && \
 ARG RSTUDIO_VERSION=1.1.463
 ARG SHA256=62aafd46f79705ca5db9c629ce3b60bf708d81c06a6b86cc4b417fbaf30691c1
 RUN apt-get update && \
-    apt-get install --yes libssl1.1 && \
+    apt-get install --yes libssl-dev && \
     curl --silent -L --fail "https://download2.rstudio.org/rstudio-server-${RSTUDIO_VERSION}-amd64.deb" > /tmp/rstudio.deb && \
     echo "${SHA256} /tmp/rstudio.deb" | sha256sum -c - && \
     apt-get install --no-install-recommends -y /tmp/rstudio.deb && \
