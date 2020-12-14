@@ -64,3 +64,15 @@ jobs:
         image-name: localhost:5000/kubeflow-image:${{ github.sha }}
         severity-threshold: CRITICAL
         run-quality-checks: false
+
+    - name: Docker login
+      run: docker login docker.pkg.github.com -u ${{ github.actor }} -p ${{ github.token }}
+
+    - name: Publish to GPR
+      run: |
+        IMAGE_NAME="$(echo ${{ matrix.notebook }} | tr '[:upper:]' '[:lower:]')"
+        REGISTRY=${{ env.REGISTRY }}
+        REPO=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')
+        docker pull localhost:5000/kubeflow-image:${{ github.sha }}
+        docker tag  localhost:5000/kubeflow-image:${{ github.sha }} docker.pkg.github.com/$REPO/$IMAGE_NAME:${{ github.sha }}
+        docker push docker.pkg.github.com/$REPO/$IMAGE_NAME:${{ github.sha }}
