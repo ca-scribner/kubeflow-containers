@@ -110,3 +110,14 @@ JupyterLab: PyTorch Tensorflow CPU
 			$(SRC)/∞_CMD.Dockerfile \
 		>   $(OUT)/$@-$${type}-$(OL)/Dockerfile; \
 	done	
+
+# Remote Desktop
+RemoteDektop: CPU
+	mkdir -p $(OUT)/$@
+	cp -r resources/* $(OUT)/$@
+
+	$(CAT) \
+		$(TMP)/$<.Dockerfile \
+		$(SRC)/4_CLI.Dockerfile \ 
+		$(SRC)/7_RemoteDesktop.Dockerfile \
+	>   $(OUT)/$@/Dockerfile
