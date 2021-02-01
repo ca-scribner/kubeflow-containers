@@ -55,8 +55,8 @@ WORKDIR $HOME
 
 ### Add all install scripts for further steps
 #scripts/remote-desktop 
-COPY ./scripts/remote-desktop/common/install/ $INST_SCRIPTS/
-COPY ./scripts/remote-desktop/ubuntu/install/ $INST_SCRIPTS/
+COPY remote-desktop/common/install/ $INST_SCRIPTS/
+COPY remote-desktop/ubuntu/install/ $INST_SCRIPTS/
 RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
 
 ### Install some common tools
@@ -75,7 +75,7 @@ RUN $INST_SCRIPTS/firefox.sh
 
 ### Install xfce UI
 RUN $INST_SCRIPTS/xfce_ui.sh
-COPY ./scripts/remote-desktop/common/xfce/ $HOME/
+COPY remote-desktop/common/xfce/ $HOME/
 
 #Ubuntu 20 Patch
 # https://github.com/ConSol/docker-headless-vnc-container/issues/96#issuecomment-687112199 
@@ -86,7 +86,7 @@ RUN ln -s `which python2` /usr/bin/python
 ### configure startup
 #Normally this is in the infinity_CMD Dockerfile, but remote desktop starts up differently than the others.
 RUN $INST_SCRIPTS/libnss_wrapper.sh
-COPY ./scripts/remote-desktop/common/scripts $STARTUPDIR
+COPY remote-desktop/common/scripts $STARTUPDIR
 RUN $INST_SCRIPTS/set_user_permission.sh $STARTUPDIR $HOME
 
 USER 1000

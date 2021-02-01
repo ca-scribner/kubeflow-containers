@@ -118,6 +118,7 @@ JupyterLab: PyTorch Tensorflow CPU
 RemoteDesktop: CPU
 	mkdir -p $(OUT)/$@
 	echo "REMOTE DESKTOP" 
+	cp -r scripts/remote-desktop $(OUT)/$@ 
 	cp -r resources/* $(OUT)/$@
 
 	$(CAT) \
