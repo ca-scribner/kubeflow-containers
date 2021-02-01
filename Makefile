@@ -26,7 +26,8 @@ clean:
 .output:
 	mkdir -p $(OUT)/ $(TMP)/
 
-all: JupyterLab RStudio
+# I think i need to add "RemoteDesktop" here
+all: JupyterLab RStudio RemoteDesktop
 	@echo "All dockerfiles created."
 
 build:
@@ -111,13 +112,15 @@ JupyterLab: PyTorch Tensorflow CPU
 		>   $(OUT)/$@-$${type}-$(OL)/Dockerfile; \
 	done	
 
-# Remote Desktop
-RemoteDektop: CPU
+# Remote Desktop, this file does not get generated. 
+#For some reason the SRC/7 is not getting detected. 
+#no it dies at COPY helpers.sh, the last line in the 4_CLI.Dockerfile
+RemoteDesktop: CPU
 	mkdir -p $(OUT)/$@
+	echo "REMOTE DESKTOP" 
 	cp -r resources/* $(OUT)/$@
 
 	$(CAT) \
 		$(TMP)/$<.Dockerfile \
-		$(SRC)/4_CLI.Dockerfile \ 
 		$(SRC)/7_RemoteDesktop.Dockerfile \
 	>   $(OUT)/$@/Dockerfile
