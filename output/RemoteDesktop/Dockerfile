@@ -89,7 +89,25 @@ RUN $INST_SCRIPTS/libnss_wrapper.sh
 COPY remote-desktop/common/scripts $STARTUPDIR
 RUN $INST_SCRIPTS/set_user_permission.sh $STARTUPDIR $HOME
 
-USER 1000
+# Remove light locker
+RUN apt-get remove -y -q light-locker
 
-ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
-CMD ["--wait"]
+#Building w/o this pip install works
+RUN python3 -m pip install \
+      'git+git://github.com/Ito-Matsuda/jupyter-desktop-server#egg=jupyter-desktop-server'
+#End comment context
+
+
+#Commented out to check things
+#USER 1000
+
+#ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
+#CMD ["--wait"]
+
+#This is exacty whats in the infinity dockerfile
+WORKDIR /home/$NB_USER
+EXPOSE 8888
+COPY remote-desktop/common/scripts/vnc_startup.sh /usr/local/bin/
+USER $NB_USER
+ENTRYPOINT ["tini", "--"]
+CMD ["vnc_startup.sh"]
