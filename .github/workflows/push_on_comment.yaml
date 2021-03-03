@@ -17,7 +17,7 @@ on:
   # push:
     # branches:
       # - master  # DEBUG Removed during debugging
-      - add-container-tests # DEBUG Added during debugging
+      # - add-container-tests # DEBUG Added during debugging
   issue_comment:
     types:
       - created
