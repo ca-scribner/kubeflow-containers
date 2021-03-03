@@ -89,12 +89,13 @@ jobs:
       fail-fast: false
       matrix:
         notebook:
-          - JupyterLab-CPU
-          - JupyterLab-PyTorch
-          - JupyterLab-Tensorflow
-          - RStudio
-          - JupyterLab-CPU-OL-compliant
-          - RemoteDesktop
+          # DEBUG: Disabled for debugging.  How can I do this nicely?  Have a second canary CI file?
+          - fast-build
+          # - JupyterLab-CPU
+          # - JupyterLab-PyTorch
+          # - JupyterLab-Tensorflow
+          # - RStudio
+          # - JupyterLab-CPU-OL-compliant
     runs-on: ubuntu-latest
     services:
       registry:
@@ -102,20 +103,6 @@ jobs:
         ports:
           - 5000:5000
     steps:
-    - name: Notify start via comment
-      if: needs.trigger-context.outputs.is_pr_comment
-      id: notify-start
-      uses: actions/github-script@v1
-      with: 
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `Build activated.  Track in [Github Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/).  I will report back when things are pushed!`
-          })
-
     - uses: ca-scribner/github-actions-recipes/get-event-ref-on-pr@24abb2d699ce6c7f8374404e4ccc7bd453bdf81a
       id: event_ref
     - uses: actions/checkout@master
@@ -170,18 +157,29 @@ jobs:
             exit 1
         fi
 
-    # Connect to Azure Container registry (ACR)
-    - uses: azure/docker-login@v1
+    - name: Set Up Python
+      uses: actions/setup-python@v2
       with:
-        login-server: ${{ env.REGISTRY }}
-        username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }}
+        python-version: 3.8
+
+    - name: Set up image testing venv
+      run: |
+        python -m pip install --upgrade pip
+        make install-python-dev-venv
+
+    # DEBUG: Removed because testing on fork
+    # # Connect to Azure Container registry (ACR)
+    # - uses: azure/docker-login@v1
+    #   with:
+    #     login-server: ${{ env.REGISTRY }}
+    #     username: ${{ secrets.REGISTRY_USERNAME }}
+    #     password: ${{ secrets.REGISTRY_PASSWORD }}
 
     # Container build and push to a Azure Container registry (ACR)
     - name: Build image
       run: |
         make all
-        COMMIT=$(make get-commit)
+        COMMIT=$(make get-docker-stacks-upstream-tag)
         echo
         cd output/${{ matrix.notebook }}
         docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/kubeflow-image:$SHORT_SHA
@@ -189,6 +187,13 @@ jobs:
         docker rmi localhost:5000/kubeflow-image:$SHORT_SHA
         docker image prune
         cd -
+
+    # TODO: In refactor of makefile, you can stick with just using latest (branch_name?) tag
+    # during build then at the end push with `docker push --all-tags`, rather than pass
+    # SHORT_SHA, etc, around like now.  Or, at least use branch_name
+    - name: Test image
+      run: |
+        make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
