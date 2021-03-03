@@ -17,27 +17,36 @@ on:
     - cron:  '0 21 * * *'
   push:
     branches:
-      - '*'
       - '!master'
 
 jobs:
+  # Any checks that run pre-build
+  pre-check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Assert committed ./output folder matches `make all` output
+      run: |
+        sudo apt-get install --yes make
+        make all
+        if ! git diff --quiet output/; then
+            echo 'output folder and docker-bits/resources out of sync!'
+            exit 1
+        fi
+
   build:
     strategy:
       fail-fast: false
       matrix:
         notebook:
-          # TODO: Pull this from a settings file, that way Make can have the same 
-          # (could also pull from Makefile like docker-stacks commit)
-          # DEBUG
-          - docker-stacks-datascience-notebook
-          # - RStudio
-          # - JupyterLab-CPU
-          # - JupyterLab-PyTorch
-          # - JupyterLab-Tensorflow
-          # - JupyterLab-CPU-OL-compliant
-          # - JupyterLab-PyTorch-OL-compliant
-          # - JupyterLab-Tensorflow-OL-compliant
-          # - RemoteDesktop
+          # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
+          - RStudio
+          - JupyterLab-CPU
+          - JupyterLab-PyTorch
+          - JupyterLab-Tensorflow
+          - JupyterLab-CPU-OL-compliant
+          - JupyterLab-PyTorch-OL-compliant
+          - JupyterLab-Tensorflow-OL-compliant
+          - RemoteDesktop
     runs-on: ubuntu-latest
     services:
       registry:
@@ -48,15 +57,6 @@ jobs:
     - uses: actions/checkout@master
     - name: Add SHORT_SHA env property with commit short sha
       run:  echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
-
-    - name: Assert committed ./output folder matches `make all` output
-      run: |
-        sudo apt-get install --yes make
-        make all
-        if ! git diff --quiet output/; then
-            echo 'output folder and docker-bits/resources out of sync!'
-            exit 1
-        fi
 
     - name: Set Up Python
       uses: actions/setup-python@v2

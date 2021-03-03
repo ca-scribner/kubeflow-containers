@@ -146,9 +146,7 @@ docker-stacks-datascience-notebook:
 	echo "DS_TAG = $${DS_TAG}"; \
 	echo "ARG BASE_VERSION=$${DS_TAG}" > $(OUT)/$@/Dockerfile; \
 	echo "FROM jupyter/datascience-notebook:\$$BASE_VERSION" >> $(OUT)/$@/Dockerfile
-	echo "CMD [\"sh\"]" >> $(OUT)/$@/Dockerfile
-
-# 	cat $(OUT)/$@/Dockerfile $(SRC)/∞_CMD.Dockerfile > $(OUT)/$@/Dockerfile
+	cat $(OUT)/$@/Dockerfile $(SRC)/∞_CMD.Dockerfile > $(OUT)/$@/Dockerfile
 
 check-python-venv:
 	@if $(PYTHON) --version> /dev/null 2>&1; then \
