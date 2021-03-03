@@ -58,7 +58,7 @@ jobs:
     - name: Build image
       run: |
         make all
-        COMMIT=$(make get-commit)
+        COMMIT=$(make get-docker-stacks-upstream-tag)
         echo
         cd output/${{ matrix.notebook }}
         docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/kubeflow-image:$SHORT_SHA
