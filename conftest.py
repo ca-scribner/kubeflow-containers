@@ -34,6 +34,7 @@ def docker_client():
 def image_name():
     """Image name to test"""
     image_name = os.getenv(IMAGE_NAME_ENV_VAR)
+    LOGGER.debug(f"Found image_name {image_name} in env variable {IMAGE_NAME_ENV_VAR}")
     if image_name is None or len(image_name) == 0:
     	raise ValueError(f"Image name not found in environment variable {IMAGE_NAME_ENV_VAR}.  Did you forget to set it?")
     return image_name
