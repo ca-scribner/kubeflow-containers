@@ -75,9 +75,9 @@ jobs:
         COMMIT=$(make get-docker-stacks-upstream-tag)
         echo
         cd output/${{ matrix.notebook }}
-        docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/kubeflow-image:$SHORT_SHA
-        docker push localhost:5000/kubeflow-image:$SHORT_SHA
-        docker rmi localhost:5000/kubeflow-image:$SHORT_SHA
+        docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker rmi localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
         docker image prune
         cd -
 
@@ -93,6 +93,6 @@ jobs:
       env:
         TRIVY_TIMEOUT: 10m0s  # Trivy default is 2min.  Some images take a bit longer
       with:
-        image-name: localhost:5000/kubeflow-image:${{ env.SHORT_SHA }}
+        image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
         severity-threshold: CRITICAL
         run-quality-checks: false

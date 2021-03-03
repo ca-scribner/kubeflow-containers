@@ -14,9 +14,10 @@ def test_server_alive(container, http_client, url="http://localhost:8888"):
     resp.raise_for_status()
     LOGGER.debug(f"got text from url: {resp.text}")
 
-    # Not sure why but some flavors of JupyterLab don't hit the first one
-    try:
-        assert "<title>JupyterLab" in resp.text, \
-            "Image does not appear to start to JupyterLab page.  Try starting yourself and browsing to it to see what is happening"
-    except AssertionError as e:
-        assert '<span id="running_list_info">Currently running Jupyter processes</span>' in resp.text, e
+    # Not sure why but some flavors of JupyterLab images don't hit all of these.  
+    # Trying to catch several different acceptable looks.
+    assert any((
+        "<title>JupyterLab" in resp.text,
+        "<title>Jupyter Notebook</title>" in resp.text,
+        '<span id="running_list_info">Currently running Jupyter processes</span>' in resp.text,
+        )), "Image does not appear to start to JupyterLab page.  Try starting yourself and browsing to it to see what is happening"
