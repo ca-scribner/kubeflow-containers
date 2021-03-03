@@ -49,7 +49,7 @@ jobs:
     - name: Add SHORT_SHA env property with commit short sha
       run:  echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-    - name: Test output folder
+    - name: Assert committed ./output folder matches `make all` output
       run: |
         sudo apt-get install --yes make
         make all

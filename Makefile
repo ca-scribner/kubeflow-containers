@@ -137,14 +137,15 @@ RemoteDesktop:
 	>   $(OUT)/$@/Dockerfile
 
 # Debugging Dockerfile build that essentially uses docker-stacks images
-# Used for when you need something to build quickly during debug
-docker-stacks-datascience-notebook: CPU
-	mkdir -p $(OUT)/$@;\
+# Used for when you need something to build quickly during debugging
+docker-stacks-datascience-notebook:
+	mkdir -p $(OUT)/$@
 	cp -r resources/common/* $(OUT)/$@
-	$(CAT) \
-		$(TMP)/CPU.Dockerfile \
-		$(SRC)/∞_CMD.Dockerfile \
-		> $(OUT)/$@/Dockerfile;
+
+	DS_TAG=$$(make -s get-docker-stacks-upstream-tag); \
+	echo "DS_TAG = $${DS_TAG}"; \
+	echo "ARG BASE_VERSION=$${DS_TAG}" > $(OUT)/$@/Dockerfile; \
+	echo "FROM jupyter/datascience-notebook:\$$BASE_VERSION" >> $(OUT)/$@/Dockerfile
 
 check-python-venv:
 	@if $(PYTHON) --version> /dev/null 2>&1; then \
