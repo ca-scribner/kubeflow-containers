@@ -90,7 +90,7 @@ jobs:
       matrix:
         notebook:
           # DEBUG: Disabled for debugging.  How can I do this nicely?  Have a second canary CI file?
-          - fast-build
+          - docker-stacks-datascience-notebook
           # - JupyterLab-CPU
           # - JupyterLab-PyTorch
           # - JupyterLab-Tensorflow

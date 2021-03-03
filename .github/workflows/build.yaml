@@ -26,14 +26,18 @@ jobs:
       fail-fast: false
       matrix:
         notebook:
-          - RStudio
-          - JupyterLab-CPU
-          - JupyterLab-PyTorch
-          - JupyterLab-Tensorflow
-          - JupyterLab-CPU-OL-compliant
-          - JupyterLab-PyTorch-OL-compliant
-          - JupyterLab-Tensorflow-OL-compliant
-          - RemoteDesktop
+          # TODO: Pull this from a settings file, that way Make can have the same 
+          # (could also pull from Makefile like docker-stacks commit)
+          # DEBUG
+          - docker-stacks-datascience-notebook
+          # - RStudio
+          # - JupyterLab-CPU
+          # - JupyterLab-PyTorch
+          # - JupyterLab-Tensorflow
+          # - JupyterLab-CPU-OL-compliant
+          # - JupyterLab-PyTorch-OL-compliant
+          # - JupyterLab-Tensorflow-OL-compliant
+          # - RemoteDesktop
     runs-on: ubuntu-latest
     services:
       registry:
@@ -54,6 +58,16 @@ jobs:
             exit 1
         fi
 
+    - name: Set Up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Set up image testing venv
+      run: |
+        python -m pip install --upgrade pip
+        make install-python-dev-venv
+
     # Container build and push to a Azure Container registry (ACR)
     - name: Build image
       run: |
@@ -66,6 +80,13 @@ jobs:
         docker rmi localhost:5000/kubeflow-image:$SHORT_SHA
         docker image prune
         cd -
+
+    # TODO: In refactor of makefile, you can stick with just using latest (branch_name?) tag
+    # during build then at the end push with `docker push --all-tags`, rather than pass
+    # SHORT_SHA, etc, around like now.  Or, at least use branch_name
+    - name: Test image
+      run: |
+        make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
