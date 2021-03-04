@@ -21,6 +21,29 @@ on:
       - '!master'
 
 jobs:
+  test-free-space:
+    runs-on: ubuntu-latest
+    steps: 
+    - name: Space before
+      run: |
+        echo "Free space:"
+        df -h
+
+    - name: Maximize build space
+            uses: easimon/maximize-build-space@master
+            with:
+              root-reserve-mb: 512
+              swap-size-mb: 1024
+              remove-dotnet: 'true'
+          - name: Checkout
+            uses: actions/checkout@v2
+
+    - name: Space after
+      run: |
+        echo "Free space:"
+        df -h
+
+
   # Any checks that run pre-build
   pre-build-checks:
     runs-on: ubuntu-latest
@@ -62,7 +85,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -72,9 +95,9 @@ jobs:
         sudo swapoff -a
         sudo rm -f /swapfile
         sudo apt clean
-        docker rmi $(docker image ls -aq)
-    
-    - run:
+        docker rmi -f -f $(docker image ls -aq)
+
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -82,7 +105,7 @@ jobs:
     - name: Make all Dockerfiles
       run: make all
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -90,7 +113,7 @@ jobs:
     - name: Add SHORT_SHA env property with commit short sha
       run:  echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -100,7 +123,7 @@ jobs:
       with:
         python-version: 3.8
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -110,7 +133,7 @@ jobs:
         python -m pip install --upgrade pip
         make install-python-dev-venv
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -123,11 +146,11 @@ jobs:
         cd output/${{ matrix.notebook }}
         docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
         docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        docker rmi localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker rmi -f localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
         docker image prune
         cd -
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -139,7 +162,7 @@ jobs:
       run: |
         make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
@@ -153,7 +176,7 @@ jobs:
         severity-threshold: CRITICAL
         run-quality-checks: false
 
-    - run:
+    - run: |
         echo "df -h"
         df -h
         docker images
