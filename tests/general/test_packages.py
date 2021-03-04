@@ -57,6 +57,7 @@ PACKAGE_MAPPING = {
     "rsqlite": "DBI",
     "rcurl": "RCurl",
     "rodbc": "RODBC",
+    "catools": "caTools",
 }
 
 # List of packages that cannot be tested in a standard way
