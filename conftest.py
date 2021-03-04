@@ -90,6 +90,10 @@ class TrackedContainer(object):
         if self.container:
             self.container.remove(force=True)
 
+    def get_cmd(self):
+        image = self.docker_client.images.get(self.image_name)
+        return image.attrs['Config']['Cmd']
+
 
 @pytest.fixture(scope='function')
 def container(docker_client, image_name):
