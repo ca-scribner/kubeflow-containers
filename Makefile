@@ -34,7 +34,7 @@ clean:
 .output:
 	mkdir -p $(OUT)/ $(TMP)/
 
-all: jupyterlab rstudio remote-desktop docker-stacks-datascience-notebook
+all: clean jupyterlab rstudio remote-desktop docker-stacks-datascience-notebook
 	@echo "All dockerfiles created."
 
 build:
