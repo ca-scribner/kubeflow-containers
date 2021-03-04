@@ -21,38 +21,9 @@ on:
       - '!master'
 
 jobs:
-  test-free-space:
-    runs-on: ubuntu-latest
-    steps: 
-    - name: Space before
-      run: |
-        echo "Free space:"
-        df -h
-
-    - name: Maximize build space
-      uses: easimon/maximize-build-space@master
-      with:
-        root-reserve-mb: 512
-        swap-size-mb: 1024
-        remove-dotnet: 'true'
-
-    - name: Space after
-      run: |
-        echo "Free space:"
-        df -h
-
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Space after checkout
-      run: |
-        echo "Free space:"
-        df -h
-
-
   # Any checks that run pre-build
   pre-build-checks:
-    needs: test-free-space
+    # needs: test-free-space
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -90,6 +61,18 @@ jobs:
         ports:
           - 5000:5000
     steps:
+    - name: Free space before enabling additional space
+      run: |
+        echo "Free space:"
+        df -h
+
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 512
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
+
     - uses: actions/checkout@master
 
     - run: |
@@ -97,12 +80,12 @@ jobs:
         df -h
         docker images
 
-    - name: Free space
-      run: |
-        sudo swapoff -a
-        sudo rm -f /swapfile
-        sudo apt clean
-        docker rmi -f $(docker image ls -aq) || true
+    # - name: Free space
+    #   run: |
+    #     sudo swapoff -a
+    #     sudo rm -f /swapfile
+    #     sudo apt clean
+    #     docker rmi -f $(docker image ls -aq) || true
 
     - run: |
         echo "df -h"
@@ -153,9 +136,17 @@ jobs:
         cd output/${{ matrix.notebook }}
         docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
         docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        docker rmi -f localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        docker image prune
         cd -
+
+    - run: |
+        echo "df -h"
+        df -h
+        docker images
+
+    - name: Clean up build environment
+      run: |
+        docker rmi -f localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker image prune  # Removes dangling images, NOT all unused images.  So this will not remove any prereqs we downloaded
 
     - run: |
         echo "df -h"
