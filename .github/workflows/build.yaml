@@ -22,9 +22,11 @@ on:
 
 jobs:
   # Any checks that run pre-build
-  pre-check:
+  pre-build-checks:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@master
+
     - name: Assert committed ./output folder matches `make all` output
       run: |
         sudo apt-get install --yes make
@@ -40,14 +42,16 @@ jobs:
       matrix:
         notebook:
           # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
-          - RStudio
-          - JupyterLab-CPU
-          - JupyterLab-PyTorch
-          - JupyterLab-Tensorflow
-          - JupyterLab-CPU-OL-compliant
-          - JupyterLab-PyTorch-OL-compliant
-          - JupyterLab-Tensorflow-OL-compliant
-          - RemoteDesktop
+          - docker-stacks-datascience-notebook # Debugging
+          - rstudio
+          - jupyterlab-cpu
+          - jupyterlab-pytorch
+          - jupyterlab-tensorflow
+          - jupyterlab-cpu-ol-compliant
+          - jupyterlab-pytorch-ol-compliant
+          - jupyterlab-tensorflow-ol-compliant
+          - remote-desktop
+    needs: pre-build-checks
     runs-on: ubuntu-latest
     services:
       registry:

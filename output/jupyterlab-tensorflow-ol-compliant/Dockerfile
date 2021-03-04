@@ -1,11 +1,11 @@
 
 ###############################
-###  .tmp/Tensorflow.Dockerfile
+###  .tmp/tensorflow.Dockerfile
 ###############################
 
 
 ###############################
-###  docker-bits/0_CPU.Dockerfile
+###  docker-bits/0_cpu.Dockerfile
 ###############################
 
 ARG BASE_VERSION=r-4.0.3
@@ -98,7 +98,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 ###############################
-###  docker-bits/2_Tensorflow.Dockerfile
+###  docker-bits/2_tensorflow.Dockerfile
 ###############################
 
 # Install Tensorflow
@@ -204,11 +204,16 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ###############################
-###  docker-bits/6_JupyterLab.Dockerfile
+###  docker-bits/6_jupyterlab-ol-compliant.Dockerfile
 ###############################
 
 # installs vscode server, python & conda packages and jupyter lab extensions.
+# Using JupyterLab 3.0 from docker-stacks base image. This new version is not yet supported by some extensions so they have been removed until new compatible versions are available.
+
+# JupyterLab 3.0 introduced i18n and i10n which now allows us to have a fully official languages compliant image.
+
 # TODO: Change jupyterlab-git pre-release install to official v0.30.0 release once available
+#       use official package jupyterlab-language-pack-fr-FR when released by Jupyterlab
 
 # Install vscode
 ARG VSCODE_VERSION=3.8.0
@@ -236,11 +241,9 @@ RUN code-server --install-extension ms-python.python && \
 
 # Default environment
 RUN pip install --quiet \
-      'jupyterlab-lsp==3.4.1' \
       'jupyter-lsp==1.1.3' \
       'jupyter-server-proxy==1.6.0' \
       'kubeflow-kale==0.6.1' \
-      'lckr-jupyterlab-variableinspector==3.0.6' \
       'jupyterlab_execute_time==2.0.1' \
       'git+https://github.com/betatim/vscode-binder' \
     && \
@@ -258,18 +261,17 @@ RUN pip install --quiet \
       -c plotly \
       'jupyter-dash==0.4.0' \
     && \
-    pip install --pre \
-      'jupyterlab-git==0.30.0b2' \
-    && \
+    # pip install --pre \
+    #   'jupyterlab-git==0.30.0b2' \
+    # && \
     conda clean --all -f -y && \
     jupyter serverextension enable --py jupyter_server_proxy && \
     jupyter nbextension enable codefolding/main --sys-prefix && \
     jupyter labextension install --no-build \
+      '@jupyterlab/translation-extension@3.0.4' \
       '@jupyterlab/server-proxy@2.1.2' \
-      '@ijmbarr/jupyterlab_spellchecker@0.3.0' \
       '@hadim/jupyter-archive@3.0.0' \
       'jupyterlab-plotly@4.14.3' \
-      'jupyterlab-spreadsheet@0.4.0' \
       'nbdime-jupyterlab' \
     && \
     jupyter lab build && \
@@ -280,13 +282,7 @@ RUN pip install --quiet \
   fix-permissions $CONDA_DIR && \
   fix-permissions /home/$NB_USER
 
-# Install R and Julia language servers
-RUN julia -e 'using Pkg; Pkg.add("LanguageServer")' && \
-    conda install -c conda-forge 'r-languageserver' \
-    && \
-    conda clean --all -f -y && \
-    fix-permissions $CONDA_DIR && \
-    fix-permissions /home/$NB_USER
+RUN pip install git+https://github.com/JessicaBarh/jupyterlab-fr_FR
 
 # Solarized Theme and Cell Execution Time
 COPY jupyterlab-overrides.json /opt/conda/share/jupyter/lab/settings/overrides.json

@@ -7,8 +7,8 @@
 # The docker-stacks tag
 DOCKER-STACKS-UPSTREAM-TAG := r-4.0.3
 
-Tensorflow-CUDA := 11.1
-PyTorch-CUDA    := 11.0
+tensorflow-CUDA := 11.1
+pytorch-CUDA    := 11.0
 
 # https://stackoverflow.com/questions/5917413/concatenate-multiple-files-but-include-filename-as-section-headers
 CAT := awk '(FNR==1){print "\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\n\#\#\#  " FILENAME "\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\n"}1'
@@ -16,7 +16,7 @@ SRC := docker-bits
 RESOURCES := resources
 OUT := output
 TMP := .tmp
-OL := OL-compliant
+OL := ol-compliant
 DEFAULT_REPO := k8scc01covidacr.azurecr.io
 PYTHON_VENV := .venv
 PYTHON := $(PYTHON_VENV)/bin/python
@@ -34,7 +34,7 @@ clean:
 .output:
 	mkdir -p $(OUT)/ $(TMP)/
 
-all: JupyterLab RStudio RemoteDesktop docker-stacks-datascience-notebook
+all: jupyterlab rstudio remote-desktop docker-stacks-datascience-notebook
 	@echo "All dockerfiles created."
 
 build:
@@ -65,14 +65,14 @@ generate-Spark:
 
 # Configure the "Bases".
 #
-PyTorch Tensorflow: .output
+pytorch tensorflow: .output
 	$(CAT) \
-		$(SRC)/0_CPU.Dockerfile \
+		$(SRC)/0_cpu.Dockerfile \
 		$(SRC)/1_CUDA-$($(@)-CUDA).Dockerfile \
 		$(SRC)/2_$@.Dockerfile \
 	> $(TMP)/$@.Dockerfile
 
-CPU: .output
+cpu: .output
 	$(CAT) $(SRC)/0_$@.Dockerfile > $(TMP)/$@.Dockerfile
 
 ################################
@@ -80,7 +80,7 @@ CPU: .output
 ################################
 
 # Only one output version
-RStudio: CPU
+rstudio: cpu
 	mkdir -p $(OUT)/$@
 	cp -r resources/common/* $(OUT)/$@
 
@@ -95,7 +95,7 @@ RStudio: CPU
 
 # create directories for current images and OL-compliant images
 # create OL images with OL-compliant docker-bits, temporary until we want to replace our JupyterLab images with the OL compliant ones
-JupyterLab: PyTorch Tensorflow CPU 
+jupyterlab: pytorch tensorflow cpu 
 	
 	for type in $^; do \
 		mkdir -p $(OUT)/$@-$${type}; \
@@ -121,7 +121,7 @@ JupyterLab: PyTorch Tensorflow CPU
 	done
 
 # Remote Desktop
-RemoteDesktop:
+remote-desktop:
 	mkdir -p $(OUT)/$@
 	echo "REMOTE DESKTOP"
 	cp -r scripts/remote-desktop $(OUT)/$@
@@ -132,8 +132,8 @@ RemoteDesktop:
 		$(SRC)/0_Rocker.Dockerfile \
 		$(SRC)/3_Kubeflow.Dockerfile \
 		$(SRC)/4_CLI.Dockerfile \
-		$(SRC)/6_RemoteDesktop.Dockerfile \
-		$(SRC)/∞_CMD_RemoteDesktop.Dockerfile \
+		$(SRC)/6_remote-desktop.Dockerfile \
+		$(SRC)/∞_CMD_remote-desktop.Dockerfile \
 	>   $(OUT)/$@/Dockerfile
 
 # Debugging Dockerfile build that essentially uses docker-stacks images

@@ -106,7 +106,7 @@ RUN curl -LO "${KUBECTL_URL}" \
     && echo "oh-my-zsh: ok"
 
 ###############################
-###  docker-bits/6_RemoteDesktop.Dockerfile
+###  docker-bits/6_remote-desktop.Dockerfile
 ###############################
 
 USER root
@@ -441,7 +441,7 @@ ENV DEFAULT_JUPYTER_URL=desktop/?autoconnect=true
 ENV HOME=/home/jovyan
 
 ###############################
-###  docker-bits/∞_CMD_RemoteDesktop.Dockerfile
+###  docker-bits/∞_CMD_remote-desktop.Dockerfile
 ###############################
 
 # Configure container startup

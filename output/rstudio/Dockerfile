@@ -1,11 +1,11 @@
 
 ###############################
-###  .tmp/CPU.Dockerfile
+###  .tmp/cpu.Dockerfile
 ###############################
 
 
 ###############################
-###  docker-bits/0_CPU.Dockerfile
+###  docker-bits/0_cpu.Dockerfile
 ###############################
 
 ARG BASE_VERSION=r-4.0.3
@@ -112,7 +112,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ###############################
-###  docker-bits/6_RStudio.Dockerfile
+###  docker-bits/6_rstudio.Dockerfile
 ###############################
 
 # install rstudio-server
