@@ -22,6 +22,7 @@ def test_server_alive(container, http_client, url="http://localhost:8888"):
     assert any((
         "<title>JupyterLab" in resp.text,
         "<title>Jupyter Notebook</title>" in resp.text,
-        "<title>RStudio:" in resp.text,
+        "<title>RStudio:" in resp.text,  # RStudio
+        '<html lang="en" class="noVNC_loading">' in resp.text,  # remote-desktop using noVNC
         '<span id="running_list_info">Currently running Jupyter processes</span>' in resp.text,
         )), "Image does not appear to start to JupyterLab page.  Try starting yourself and browsing to it to see what is happening"
