@@ -30,15 +30,21 @@ jobs:
         df -h
 
     - name: Maximize build space
-            uses: easimon/maximize-build-space@master
-            with:
-              root-reserve-mb: 512
-              swap-size-mb: 1024
-              remove-dotnet: 'true'
-          - name: Checkout
-            uses: actions/checkout@v2
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 512
+        swap-size-mb: 1024
+        remove-dotnet: 'true'
 
     - name: Space after
+      run: |
+        echo "Free space:"
+        df -h
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Space after checkout
       run: |
         echo "Free space:"
         df -h
@@ -46,6 +52,7 @@ jobs:
 
   # Any checks that run pre-build
   pre-build-checks:
+    needs: test-free-space
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
