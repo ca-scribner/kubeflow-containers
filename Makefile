@@ -141,12 +141,9 @@ remote-desktop:
 docker-stacks-datascience-notebook:
 	mkdir -p $(OUT)/$@
 	cp -r resources/common/* $(OUT)/$@
-
 	DS_TAG=$$(make -s get-docker-stacks-upstream-tag); \
-	echo "DS_TAG = $${DS_TAG}"; \
-	echo "ARG BASE_VERSION=$${DS_TAG}" > $(OUT)/$@/Dockerfile; \
-	echo "FROM jupyter/datascience-notebook:\$$BASE_VERSION" >> $(OUT)/$@/Dockerfile
-	cat $(OUT)/$@/Dockerfile $(SRC)/∞_CMD.Dockerfile > $(OUT)/$@/Dockerfile
+	echo "FROM jupyter/datascience-notebook:$$DS_TAG" > $(OUT)/$@/Dockerfile; \
+	$(CAT) $(SRC)/∞_CMD.Dockerfile >> $(OUT)/$@/Dockerfile
 
 check-python-venv:
 	@if $(PYTHON) --version> /dev/null 2>&1; then \
