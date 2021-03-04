@@ -61,22 +61,59 @@ jobs:
           - 5000:5000
     steps:
     - uses: actions/checkout@master
+
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
+    - name: Free space
+      run: |
+        sudo swapoff -a
+        sudo rm -f /swapfile
+        sudo apt clean
+        docker rmi $(docker image ls -aq)
     
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
     - name: Make all Dockerfiles
       run: make all
 
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
     - name: Add SHORT_SHA env property with commit short sha
       run:  echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+    - run:
+        echo "df -h"
+        df -h
+        docker images
 
     - name: Set Up Python
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
 
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
     - name: Set up image testing venv
       run: |
         python -m pip install --upgrade pip
         make install-python-dev-venv
+
+    - run:
+        echo "df -h"
+        df -h
+        docker images
 
     # Container build and push to a Azure Container registry (ACR)
     - name: Build image
@@ -90,12 +127,22 @@ jobs:
         docker image prune
         cd -
 
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
     # TODO: In refactor of makefile, you can stick with just using latest (branch_name?) tag
     # during build then at the end push with `docker push --all-tags`, rather than pass
     # SHORT_SHA, etc, around like now.  Or, at least use branch_name
     - name: Test image
       run: |
         make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
+
+    - run:
+        echo "df -h"
+        df -h
+        docker images
 
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
@@ -105,3 +152,9 @@ jobs:
         image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
         severity-threshold: CRITICAL
         run-quality-checks: false
+
+    - run:
+        echo "df -h"
+        df -h
+        docker images
+
