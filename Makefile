@@ -18,9 +18,15 @@ OUT := output
 TMP := .tmp
 OL := ol-compliant
 DEFAULT_REPO := k8scc01covidacr.azurecr.io
+DEFAULT_TAG := $(shell git rev-parse --abbrev-ref HEAD)
 PYTHON_VENV := .venv
 PYTHON := $(PYTHON_VENV)/bin/python
 TESTS_DIR := ./tests
+GIT_SHA := $(shell git rev-parse HEAD)
+BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
+
+MAKE_HELPERS := ./make_helpers/
+POST_BUILD_HOOK := post-build-hook.sh
 
 DEFAULT_PORT := 8888
 
@@ -37,14 +43,43 @@ clean:
 all: clean jupyterlab rstudio remote-desktop docker-stacks-datascience-notebook
 	@echo "All dockerfiles created."
 
-build:
-	for d in output/*; do \
-		tag=$$(basename $$d | tr '[:upper:]' '[:lower:]'); \
-		echo $$tag; \
-		cd $$d; \
-		docker build . -t kubeflow-$$tag; \
-		cd ../../; \
-	done;
+build/%: DARGS?=
+build/%: REPO?=$(DEFAULT_REPO)
+build/%: TAG?=$(DEFAULT_TAG)
+build/%: ## build the latest image
+	# End repo with exactly one trailing slash, unless it is empty
+	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
+	;\
+	IMAGE_NAME="$${REPO}$(notdir $@):$(TAG)"; \
+	docker build $(DARGS) --rm --force-rm -t $$IMAGE_NAME ./output/$(notdir $@); \
+	echo -n "Built image $$IMAGE_NAME of size: "; \
+	docker images $$IMAGE_NAME --format "{{.Size}}"
+
+post-build/%: export REPO?=$(DEFAULT_REPO)
+post-build/%: export TAG?=$(DEFAULT_TAG)
+post-build/%:
+	# TODO: could check for custom hook in the build's directory
+	IMAGE_NAME="$(notdir $@)" \
+	GIT_SHA=$(GIT_SHA) \
+	BRANCH_NAME=$(BRANCH_NAME) \
+	bash "$(MAKE_HELPERS)/$(POST_BUILD_HOOK)"
+
+pull/%: DARGS?=
+pull/%: REPO?=$(DEFAULT_REPO)
+pull/%: TAG?=
+pull/%:
+	# End repo with a single slash and start tag with a single colon, if they exist
+	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
+	TAG=$$(echo "$(TAG)" | sed 's~^:*~:~' | sed 's~^\s*:*\s*$$~~') ;\
+	echo "Pulling $${REPO}$(notdir $@)$${TAG}" ;\
+	docker pull $(DARGS) "$${REPO}$(notdir $@)$${TAG}"
+
+push/%: DARGS?=
+push/%: REPO?=$(DEFAULT_REPO)
+push/%:
+	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
+	echo "Pushing $${REPO}$(notdir $@)" ;\
+	docker push --all-tags $(DARGS) "$${REPO}"$(notdir $@)
 
 #############################
 ###    Generated Files    ###
@@ -169,9 +204,7 @@ install-python-dev-venv:
 test/%: REPO?=$(DEFAULT_REPO)
 test/%: check-test-prereqs # Run all generic and image-specific tests against an image
 	# End repo with exactly one trailing slash, unless it is empty
-	echo "(before) REPO = $$REPO" ;\
-	REPO=$$(echo "$$REPO" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
-	echo "(after) REPO = $$REPO" ;\
+	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
 	TESTS="$(TESTS_DIR)/general";\
 	SPECIFIC_TEST_DIR="$(TESTS_DIR)/$(notdir $@)";\
 	if [ ! -d "$${SPECIFIC_TEST_DIR}" ]; then\

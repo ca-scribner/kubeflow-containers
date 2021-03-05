@@ -63,18 +63,11 @@ jobs:
     steps:
     - uses: actions/checkout@master
 
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
+    - name: Free up all available disk space before building
+      run: ./.github/scripts/cleanup_runner.sh
 
-    # Free up all available disk space before building
-    - run: ./.github/scripts/cleanup_runner.sh
-
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
+    - name: Echo disk usage before start
+      run: ./.github/scripts/echo_usage.sh
 
     - name: Set Up Python for Test Suite
       uses: actions/setup-python@v2
@@ -89,43 +82,20 @@ jobs:
     - name: Make all Dockerfiles
       run: make all
 
-    - name: Add SHORT_SHA env property for commit's short sha
-      run:  echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+    - name: Build image
+      run: make build/${{ matrix.notebook }} REPO=$${loca}
 
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
+    - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
+      run: make post-build REPO=localhost:5000
 
-    - name: Build image and Push to Registry Service
-      run: |
-        COMMIT=$(make get-docker-stacks-upstream-tag)
-        echo
-        cd output/${{ matrix.notebook }}
-        docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        cd -
+    - name: Push image to local registry (default pushes all tags)
+      run: make push REPO=localhost:5000
 
-    # TODO: In refactor of makefile, you can stick with just using latest (branch_name?) tag
-    # during build then at the end push with `docker push --all-tags`, rather than pass
-    # SHORT_SHA, etc, around like now.  Or, at least use branch_name
     - name: Test image
-      run: |
-        make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
-
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
+      run: make test/${{ matrix.notebook }}:latest REPO=localhost:5000
 
     # Free up space from build process (containerscan action will run out of space if we don't)
     - run: ./.github/scripts/cleanup_runner.sh
-
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
-
     # Scan image for vulnerabilities
     - uses: Azure/container-scan@v0
       env:
@@ -134,9 +104,3 @@ jobs:
         image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
         severity-threshold: CRITICAL
         run-quality-checks: false
-
-    - run: |
-        echo "df -h"
-        df -h
-        docker images
-
