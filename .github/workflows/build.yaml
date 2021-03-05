@@ -46,13 +46,13 @@ jobs:
           # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
           - docker-stacks-datascience-notebook # Debugging
           - rstudio
-          # - jupyterlab-cpu
-          # - jupyterlab-pytorch
-          # - jupyterlab-tensorflow
-          # - jupyterlab-cpu-ol-compliant
-          # - jupyterlab-pytorch-ol-compliant
-          # - jupyterlab-tensorflow-ol-compliant
-          # - remote-desktop
+          - jupyterlab-cpu
+          - jupyterlab-pytorch
+          - jupyterlab-tensorflow
+          - jupyterlab-cpu-ol-compliant
+          - jupyterlab-pytorch-ol-compliant
+          - jupyterlab-tensorflow-ol-compliant
+          - remote-desktop
     needs: pre-build-checks
     runs-on: ubuntu-latest
     services:
@@ -102,25 +102,24 @@ jobs:
         COMMIT=$(make get-docker-stacks-upstream-tag)
         echo
         cd output/${{ matrix.notebook }}
-        docker build . --build-arg BASE_VERSION=$COMMIT -t ${{ matrix.notebook }}:$SHORT_SHA
-        # docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
-        # docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker build . --build-arg BASE_VERSION=$COMMIT -t localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
+        docker push localhost:5000/${{ matrix.notebook }}:$SHORT_SHA
         cd -
 
     # TODO: In refactor of makefile, you can stick with just using latest (branch_name?) tag
     # during build then at the end push with `docker push --all-tags`, rather than pass
     # SHORT_SHA, etc, around like now.  Or, at least use branch_name
-    # - name: Test image
-    #   run: |
-    #     make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
+    - name: Test image
+      run: |
+        make test/${{ matrix.notebook }}:$SHORT_SHA REPO=localhost:5000
 
     - run: |
         echo "df -h"
         df -h
         docker images
 
-    # # Free up space from build process (containerscan action will run out of space if we don't)
-    # - run: ./.github/scripts/cleanup_runner.sh
+    # Free up space from build process (containerscan action will run out of space if we don't)
+    - run: ./.github/scripts/cleanup_runner.sh
 
     - run: |
         echo "df -h"
@@ -132,8 +131,7 @@ jobs:
       env:
         TRIVY_TIMEOUT: 10m0s  # Trivy default is 2min.  Some images take a bit longer
       with:
-        # image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
-        image-name: ${{ matrix.notebook }}:${{ env.SHORT_SHA }}
+        image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
         severity-threshold: CRITICAL
         run-quality-checks: false
 
