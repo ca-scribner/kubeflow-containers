@@ -83,7 +83,7 @@ jobs:
       run: make all
 
     - name: Build image
-      run: make build/${{ matrix.notebook }} REPO=$${loca}
+      run: make build/${{ matrix.notebook }} REPO=localhost:5000
 
     - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
       run: make post-build/${{ matrix.notebook }} REPO=localhost:5000
