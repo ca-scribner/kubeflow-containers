@@ -1,0 +1,148 @@
+# This workflow will build a docker container and scan/test it locally. 
+# This workflow triggers on:
+#   a push to master
+#   any create/synchronize to a PR (eg: any time you push an update to a PR).  
+#
+# Image build/test/scan will run on any of the above events.
+# Image push will run only if this is a push to master or if the PR synchronize 
+# triggering this has the label 'auto-deploy'
+#
+# To configure this workflow:
+#
+# 1. Set up the following secrets in your workspace:
+#     a. REGISTRY_USERNAME with ACR username
+#     b. REGISTRY_PASSWORD with ACR Password
+#     c. AZURE_CREDENTIALS with the output of `az ad sp create-for-rbac --sdk-auth`
+#
+# 2. Change the values for the REGISTRY_NAME, CLUSTER_NAME, CLUSTER_RESOURCE_GROUP and NAMESPACE environment variables (below in build-push).
+name: build_and_push
+on:
+  schedule:
+    # Execute at 2am EST every day
+    - cron:  '0 21 * * *'
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    types:
+      - 'opened'
+      - 'synchronize'
+      - 'reopened'
+
+jobs:
+  # Any checks that run pre-build
+  pre-build-checks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Assert committed ./output folder matches `make all` output
+      run: |
+        sudo apt-get install --yes make
+        make clean
+        make all
+        if ! git diff --quiet output/; then
+            echo 'output folder and docker-bits/resources out of sync!'
+            exit 1
+        fi
+
+    - name: has auto-deploy label
+      if: github.event.label.name == 'auto-deploy'
+      run: echo "I have the auto-deploy label!"
+
+    - name: has auto-deploy label or push to master
+      if: |
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          github.event.label.name == 'auto-deploy'
+        )
+      run: echo "I am a push or have the auto-deploy label!"
+
+
+  build-push:
+    env:
+      REGISTRY: k8scc01covidacr.azurecr.io
+      REGISTRY_NAME: k8scc01covidacr
+      CLUSTER_NAME: k8s-cancentral-01-covid-aks
+      CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
+    strategy:
+      fail-fast: false
+      matrix:
+        notebook:
+          # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
+          - docker-stacks-datascience-notebook # Debugging
+          # - rstudio
+          # - jupyterlab-cpu
+          # - jupyterlab-pytorch
+          # - jupyterlab-tensorflow
+          # - jupyterlab-cpu-ol-compliant
+          # - jupyterlab-pytorch-ol-compliant
+          # - jupyterlab-tensorflow-ol-compliant
+          # - remote-desktop
+    needs: pre-build-checks
+    runs-on: ubuntu-latest
+    env: 
+      LOCAL_REPO: localhost:5000
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Free up all available disk space before building
+      run: ./.github/scripts/cleanup_runner.sh
+
+    - name: Echo disk usage before start
+      run: ./.github/scripts/echo_usage.sh
+
+    # Image building/storing locally
+
+    - name: Make all Dockerfiles
+      run: make all
+
+    # make build emits full_image_name, image_tag, and image_repo outputs
+    - name: Build image
+      id: build-image
+      run: make build/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
+
+    - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
+      run: make post-build/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
+
+    - name: Push image to local registry (default pushes all tags)
+      run: make push/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
+
+    # Image testing
+    
+    - name: Set Up Python for Test Suite
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Set up venv for Test Suite
+      run: |
+        python -m pip install --upgrade pip
+        make install-python-dev-venv
+
+    - name: Test image
+      run: make test/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
+
+    # Image scanning
+
+    # Free up space from build process (containerscan action will run out of space if we don't)
+    - run: ./.github/scripts/cleanup_runner.sh
+    # Scan image for vulnerabilities
+    - uses: Azure/container-scan@v0
+      env:
+        TRIVY_TIMEOUT: 10m0s  # Trivy default is 2min.  Some images take a bit longer
+      with:
+        image-name: ${{ env.LOCAL_REPO }}/${{ matrix.notebook }}:${{ steps.build-image.outputs.full_image_name }}
+        severity-threshold: CRITICAL
+        run-quality-checks: false
+
+    # # Push image to ACR
+    # - name: Push image to ACR
+    #   if: github.event.label.name == 'auto-deploy'
+
