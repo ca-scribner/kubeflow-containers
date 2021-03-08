@@ -63,7 +63,7 @@ jobs:
         github.event_name == 'push' ||
         (
           github.event_name == 'pull_request' &&
-          github.event.label.name == 'auto-deploy'
+          contains( github.event.pull_request.labels.*.name, 'auto-deploy')
         )
       run: echo "I am a push or have the auto-deploy label!"
 
