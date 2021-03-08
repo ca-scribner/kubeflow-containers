@@ -81,7 +81,7 @@ push/%: DARGS?=
 push/%: REPO?=$(DEFAULT_REPO)
 push/%:
 	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
-	echo "Pushing $${REPO}$(notdir $@)" ;\
+	echo "Pushing $${REPO}$(notdir $@) (all tags)" ;\
 	docker push --all-tags $(DARGS) "$${REPO}"$(notdir $@)
 
 #############################

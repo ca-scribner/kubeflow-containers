@@ -149,8 +149,27 @@ jobs:
         severity-threshold: CRITICAL
         run-quality-checks: false
 
-    # # Push image to ACR
-    # - name: Push image to ACR
-    #   if: github.event.label.name == 'auto-deploy'
+    # Push image to ACR
+    # Pushes if this is a push to master or an update to a PR that has auto-deploy label
+    - name: Test if we should push to ACR
+      id: should-i-push
+      if: |
+        github.event_name == 'push' ||
+        (
+          github.event_name == 'pull_request' &&
+          contains( github.event.pull_request.labels.*.name, 'auto-deploy')
+        )
+      run: echo "::set-output name=boolean::true"
 
+    # Connect to Azure Container registry (ACR)
+    - uses: azure/docker-login@v1
+      if: steps.should-i-push.outputs.boolean == 'true'
+      with:
+        login-server: ${{ env.REGISTRY_NAME }}.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
 
+    - name: Push image to ACR
+      if: steps.should-i-push.outputs.boolean == 'true'
+      run: |
+        make push/${{ matrix.notebook }}
