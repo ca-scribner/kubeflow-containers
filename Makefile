@@ -53,7 +53,10 @@ build/%: ## build the latest image
 	IMAGE_NAME="$${REPO}$(notdir $@):$(TAG)"; \
 	docker build $(DARGS) --rm --force-rm -t $$IMAGE_NAME ./output/$(notdir $@); \
 	echo -n "Built image $$IMAGE_NAME of size: "; \
-	docker images $$IMAGE_NAME --format "{{.Size}}"
+	docker images $$IMAGE_NAME --format "{{.Size}}"; \
+	echo "::set-output name=full_image_name::$$IMAGE_NAME"; \
+	echo "::set-output name=image_tag::$(TAG)"; \
+	echo "::set-output name=image_repo::$${REPO}"
 
 post-build/%: export REPO?=$(DEFAULT_REPO)
 post-build/%: export TAG?=$(DEFAULT_TAG)

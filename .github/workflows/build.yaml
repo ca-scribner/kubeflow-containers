@@ -84,7 +84,9 @@ jobs:
     - name: Make all Dockerfiles
       run: make all
 
+    # make build emits full_image_name, image_tag, and image_repo outputs
     - name: Build image
+      id: build-image
       run: make build/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
@@ -103,6 +105,6 @@ jobs:
       env:
         TRIVY_TIMEOUT: 10m0s  # Trivy default is 2min.  Some images take a bit longer
       with:
-        image-name: ${{ env.LOCAL_REPO }}/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
+        image-name: ${{ env.LOCAL_REPO }}/${{ matrix.notebook }}:${{ steps.build-image.outputs.full_image_name }}
         severity-threshold: CRITICAL
         run-quality-checks: false
