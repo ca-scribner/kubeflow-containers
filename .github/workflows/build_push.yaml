@@ -22,8 +22,11 @@ on:
     - cron:  '0 21 * * *'
   push:
     branches:
-      - '*'
-      - '!master'
+      - 'master'
+  pull_request:
+      - 'opened'
+      - 'synchronize'
+      - 'reopened'
 
 jobs:
   # Any checks that run pre-build
