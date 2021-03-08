@@ -35,6 +35,8 @@ jobs:
   # Any checks that run pre-build
   pre-build-checks:
     runs-on: ubuntu-latest
+    env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
     steps:
     # DEBUG
     - name: Dump GitHub context
