@@ -36,6 +36,10 @@ jobs:
   pre-build-checks:
     runs-on: ubuntu-latest
     steps:
+    # DEBUG
+    - name: Dump GitHub context
+      run: echo "$GITHUB_CONTEXT"
+
     - uses: actions/checkout@master
 
     - name: Assert committed ./output folder matches `make all` output
