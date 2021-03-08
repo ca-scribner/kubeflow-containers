@@ -55,6 +55,8 @@ jobs:
           - remote-desktop
     needs: pre-build-checks
     runs-on: ubuntu-latest
+    env: 
+      LOCAL_REPO: localhost:5000
     services:
       registry:
         image: registry:2
@@ -83,16 +85,16 @@ jobs:
       run: make all
 
     - name: Build image
-      run: make build/${{ matrix.notebook }} REPO=localhost:5000
+      run: make build/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
-      run: make post-build/${{ matrix.notebook }} REPO=localhost:5000
+      run: make post-build/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     - name: Push image to local registry (default pushes all tags)
-      run: make push/${{ matrix.notebook }} REPO=localhost:5000
+      run: make push/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     - name: Test image
-      run: make test/${{ matrix.notebook }}:latest REPO=localhost:5000
+      run: make test/${{ matrix.notebook }}:latest REPO=${{ env.LOCAL_REPO }}
 
     # Free up space from build process (containerscan action will run out of space if we don't)
     - run: ./.github/scripts/cleanup_runner.sh
@@ -101,6 +103,6 @@ jobs:
       env:
         TRIVY_TIMEOUT: 10m0s  # Trivy default is 2min.  Some images take a bit longer
       with:
-        image-name: localhost:5000/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
+        image-name: ${{ env.LOCAL_REPO }}/${{ matrix.notebook }}:${{ env.SHORT_SHA }}
         severity-threshold: CRITICAL
         run-quality-checks: false
