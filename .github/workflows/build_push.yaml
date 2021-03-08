@@ -141,7 +141,7 @@ jobs:
         severity-threshold: CRITICAL
         run-quality-checks: false
 
-    # Push image to ACR
-    - name: Push image to ACR
-      if: github.event.label.name == 'auto-deploy'
+    # # Push image to ACR
+    # - name: Push image to ACR
+    #   if: github.event.label.name == 'auto-deploy'
 
