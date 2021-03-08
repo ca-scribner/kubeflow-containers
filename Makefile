@@ -202,6 +202,7 @@ install-python-dev-venv:
 	$(PYTHON) -m pip install -Ur requirements-dev.txt
 
 test/%: REPO?=$(DEFAULT_REPO)
+test/%: TAG?=$(DEFAULT_TAG)
 test/%: check-test-prereqs # Run all generic and image-specific tests against an image
 	# End repo with exactly one trailing slash, unless it is empty
 	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
@@ -214,4 +215,4 @@ test/%: check-test-prereqs # Run all generic and image-specific tests against an
 		echo "Found specific tests folder";\
 	fi;\
 	echo "Running tests on folders '$${TESTS}'";\
-	IMAGE_NAME="$${REPO}$(notdir $@)" $(PYTHON) -m pytest -m "not info" $${TESTS}
+	IMAGE_NAME="$${REPO}$(notdir $@):$(TAG)" $(PYTHON) -m pytest -m "not info" $${TESTS}
