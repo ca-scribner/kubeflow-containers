@@ -49,7 +49,7 @@ build/%: TAG?=$(DEFAULT_TAG)
 build/%: ## build the latest image
 	# End repo with exactly one trailing slash, unless it is empty
 	REPO=$$(echo "$(REPO)" | sed 's:/*$$:/:' | sed 's:^\s*/*\s*$$::') ;\
-	;\
+	\
 	IMAGE_NAME="$${REPO}$(notdir $@):$(TAG)"; \
 	docker build $(DARGS) --rm --force-rm -t $$IMAGE_NAME ./output/$(notdir $@); \
 	echo -n "Built image $$IMAGE_NAME of size: "; \
