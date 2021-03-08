@@ -86,10 +86,10 @@ jobs:
       run: make build/${{ matrix.notebook }} REPO=$${loca}
 
     - name: Add standard tag names (short sha, sha, and branch) and any other post-build activity
-      run: make post-build REPO=localhost:5000
+      run: make post-build/${{ matrix.notebook }} REPO=localhost:5000
 
     - name: Push image to local registry (default pushes all tags)
-      run: make push REPO=localhost:5000
+      run: make push/${{ matrix.notebook }} REPO=localhost:5000
 
     - name: Test image
       run: make test/${{ matrix.notebook }}:latest REPO=localhost:5000
