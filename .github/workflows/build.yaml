@@ -94,7 +94,7 @@ jobs:
       run: make push/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     - name: Test image
-      run: make test/${{ matrix.notebook }}:latest REPO=${{ env.LOCAL_REPO }}
+      run: make test/${{ matrix.notebook }} REPO=${{ env.LOCAL_REPO }}
 
     # Free up space from build process (containerscan action will run out of space if we don't)
     - run: ./.github/scripts/cleanup_runner.sh
