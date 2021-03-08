@@ -60,37 +60,37 @@ jobs:
       run: echo "I am a push or have the auto-deploy label!"
 
 
-  # build-push:
-  #   env:
-  #     REGISTRY: k8scc01covidacr.azurecr.io
-  #     REGISTRY_NAME: k8scc01covidacr
-  #     CLUSTER_NAME: k8s-cancentral-01-covid-aks
-  #     CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       notebook:
-  #         # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
-  #         - docker-stacks-datascience-notebook # Debugging
-  #         # - rstudio
-  #         # - jupyterlab-cpu
-  #         # - jupyterlab-pytorch
-  #         # - jupyterlab-tensorflow
-  #         # - jupyterlab-cpu-ol-compliant
-  #         # - jupyterlab-pytorch-ol-compliant
-  #         # - jupyterlab-tensorflow-ol-compliant
-  #         # - remote-desktop
-  #   needs: pre-build-checks
-  #   runs-on: ubuntu-latest
-  #   env: 
-  #     LOCAL_REPO: localhost:5000
-  #   services:
-  #     registry:
-  #       image: registry:2
-  #       ports:
-  #         - 5000:5000
-  #   steps:
-  #   - uses: actions/checkout@master
+  build-push:
+    env:
+      REGISTRY: k8scc01covidacr.azurecr.io
+      REGISTRY_NAME: k8scc01covidacr
+      CLUSTER_NAME: k8s-cancentral-01-covid-aks
+      CLUSTER_RESOURCE_GROUP: k8s-cancentral-01-covid-aks
+    strategy:
+      fail-fast: false
+      matrix:
+        notebook:
+          # TODO: Pull this from a settings file or Makefile, that way Make can have the same list 
+          - docker-stacks-datascience-notebook # Debugging
+          # - rstudio
+          # - jupyterlab-cpu
+          # - jupyterlab-pytorch
+          # - jupyterlab-tensorflow
+          # - jupyterlab-cpu-ol-compliant
+          # - jupyterlab-pytorch-ol-compliant
+          # - jupyterlab-tensorflow-ol-compliant
+          # - remote-desktop
+    needs: pre-build-checks
+    runs-on: ubuntu-latest
+    env: 
+      LOCAL_REPO: localhost:5000
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+    steps:
+    - uses: actions/checkout@master
 
   #   - name: Free up all available disk space before building
   #     run: ./.github/scripts/cleanup_runner.sh
